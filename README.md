@@ -1,2 +1,2 @@
 # mimi-jesse-anniversary
-Happy anniversary to my bester cutie &lt;3
+Happy anniversary to my bester cutie!
