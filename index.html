@@ -3,45 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My GitHub Page</title>
+    <title>Hi Girlfriend!!!</title>
+    <!-- Tailwind CSS for easy styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f5eeff; /* Very light lilac background */
             display: flex;
+            flex-direction: column; /* Stack elements vertically */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f0f4f8; /* Light blue-gray background */
-            color: #2d3748; /* Dark text */
+            overflow: hidden; /* Hide all overflow for animations */
+            padding: 1rem; /* Add some padding around the edges */
+            box-sizing: border-box; /* Include padding in element's total width and height */
         }
-        .card {
-            background-color: #ffffff;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        .welcome-header {
+            color: #8a2be2; /* Paler purple for heading */
+            font-size: 5rem; /* Very big font size */
+            font-weight: 900; /* Extra bold */
+            text-shadow: 4px 4px 0px rgba(255, 255, 255, 0.5); /* White shadow for pop */
+            margin-bottom: 2rem;
             text-align: center;
-            max-width: 500px;
-            width: 90%;
+            line-height: 1; /* Adjust line height for big text */
+            position: relative; /* Ensure it's above hearts */
+            z-index: 10; /* Higher z-index than hearts */
         }
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #4c51bf; /* Indigo heading */
+        .content-wrapper {
+            display: flex;
+            flex-direction: column; /* Default to column on small screens */
+            align-items: center;
+            gap: 2rem; /* Space between text and image */
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 90%;
+            width: 900px; /* Wider container for content */
+            border: 3px solid #d8c8f0; /* Paler lilac border */
+            position: relative; /* Ensure it's above hearts */
+            z-index: 10; /* Higher z-index than hearts */
         }
-        p {
-            font-size: 1.125rem;
+        .welcome-text-section {
+            flex: 1; /* Allows text to take available space */
+            text-align: center;
+        }
+        .welcome-text {
+            color: #a878ed; /* Paler blue-violet for paragraph */
+            font-size: 1.25rem; /* Slightly smaller font size */
             line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        .milk-bear-gif {
+            width: 100%; /* Full width on small screens */
+            max-width: 300px; /* Max width for the GIF */
+            height: auto;
+            border-radius: 1rem; /* Rounded corners for the GIF */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Next Button Styles */
+        .next-button {
+            background-color: #a878ed; /* Matching purple */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* Fully rounded */
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-top: 2rem; /* Space from the content box */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: inline-block; /* Allows margin-top to work and centers it */
+        }
+        .next-button:hover {
+            background-color: #8a2be2; /* Slightly darker on hover */
+            transform: translateY(-2px);
+        }
+
+        /* Heart animation styles */
+        .heart-animation {
+            position: fixed; /* Fixed position relative to viewport */
+            background-color: #e8dcf5; /* Very pale lilac heart */
+            z-index: -1; /* Place hearts behind other content */
+        }
+        .heart-animation::before,
+        .heart-animation::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #e8dcf5; /* Very pale lilac heart */
+            border-radius: 50%;
+        }
+        .heart-animation::before {
+            top: -50%;
+            left: 0;
+        }
+        .heart-animation::after {
+            top: 0;
+            left: 50%;
+        }
+
+        /* Generic heart animation using CSS variables for dynamic translation */
+        @keyframes floatHeart {
+            0% {
+                transform: rotate(-45deg) scale(0.5); /* Initial rotation and scale */
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--translate-x), var(--translate-y)) rotate(-45deg) scale(1.2); /* Move and scale */
+                opacity: 0;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .content-wrapper {
+                flex-direction: row; /* Row layout on larger screens */
+                text-align: left; /* Align text left when beside image */
+            }
+            .welcome-header {
+                font-size: 6rem; /* Even bigger on desktop */
+            }
+            .welcome-text {
+                font-size: 1.125rem; /* Adjusted for desktop */
+            }
+        }
+
+        @media (max-width: 767px) {
+            .welcome-header {
+                font-size: 3.5rem; /* Smaller on mobile */
+            }
+            .welcome-text {
+                font-size: 1rem; /* Adjusted for mobile */
+            }
+            .content-wrapper {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-header {
+                font-size: 2.5rem;
+            }
+            .welcome-text {
+                font-size: 0.9rem; /* Adjusted for very small screens */
+            }
+            .content-wrapper {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Hello GitHub Pages!</h1>
-        <p>This is your very first website hosted on GitHub. Let's make it awesome!</p>
+    <h1 class="welcome-header">HI YOU!</h1>
+
+    <div class="content-wrapper">
+        <div class="welcome-text-section">
+            <p class="welcome-text">Thanks for stopping by! My name is Milk Bear, and I will be your tour guide today! My boyfriend, Mocha, told me that today is a special day...it's your "ANNIVERSARY"!!! And soon to be your BIRTHDAY! Wow, we have so much to celebrate! <br><br> Anyways, come on in! I'll show you around. Let's go!</p>
+        </div>
+        <img src="gif_milk.gif" alt="Cute Milk Bear GIF" class="milk-bear-gif" onerror="this.onerror=null;this.src='https://placehold.co/300x300/d8c8f0/8a2be2?text=Milk+Bear+GIF'">
     </div>
+
+    <a href="next_page.html" class="next-button">Next</a>
+
+    <script>
+        // Function to create and animate a heart
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart-animation');
+            document.body.appendChild(heart);
+
+            // Random size for variety
+            const size = Math.random() * 40 + 20; // Hearts between 20px and 60px
+            heart.style.width = `${size}px`;
+            heart.style.height = `${size}px`;
+
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const buffer = 50; // How far outside the screen to start/end
+
+            // Randomly choose an entry side (0: top, 1: right, 2: bottom, 3: left)
+            const entrySide = Math.floor(Math.random() * 4);
+
+            let translateX = 0;
+            let translateY = 0;
+
+            switch (entrySide) {
+                case 0: // From Top
+                    heart.style.left = `${Math.random() * viewportWidth}px`;
+                    heart.style.top = `${-size - buffer}px`; // Start above the viewport
+                    translateY = viewportHeight + size + buffer; // Move down past the bottom
+                    break;
+                case 1: // From Right
+                    heart.style.top = `${Math.random() * viewportHeight}px`;
+                    heart.style.left = `${viewportWidth + buffer}px`; // Start right of the viewport
+                    translateX = -(viewportWidth + size + buffer); // Move left past the left edge
+                    break;
+                case 2: // From Bottom
+                    heart.style.top = `${viewportHeight + buffer}px`; // Start below the viewport
+                    heart.style.left = `${Math.random() * viewportWidth}px`;
+                    translateY = -(viewportHeight + size + buffer); // Move up past the top
+                    break;
+                case 3: // From Left
+                    heart.style.top = `${Math.random() * viewportHeight}px`;
+                    heart.style.left = `${-size - buffer}px`; // Start left of the viewport
+                    translateX = viewportWidth + size + buffer; // Move right past the right edge
+                    break;
+            }
+
+            // Set CSS variables for the animation
+            heart.style.setProperty('--translate-x', `${translateX}px`);
+            heart.style.setProperty('--translate-y', `${translateY}px`);
+
+            // Apply the general heart animation
+            heart.style.animationName = 'floatHeart';
+            heart.style.animationDuration = `${Math.random() * 4 + 4}s`; // Random duration
+            heart.style.animationDelay = `${Math.random() * 2}s`; // Random delay
+            heart.style.animationFillMode = 'forwards'; // Keep the heart at its final state (hidden)
+
+            // Remove heart after animation to prevent memory leak
+            heart.addEventListener('animationend', () => {
+                heart.remove();
+            });
+        }
+
+        // Create hearts at intervals
+        setInterval(createHeart, 500); // Create a new heart every 500ms
+    </script>
 </body>
 </html>
