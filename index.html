@@ -66,7 +66,7 @@
         }
 
         /* Next Button Styles */
-        .next-button {
+        .next-button, .play-music-button {
             background-color: #a878ed; /* Matching purple */
             color: white;
             padding: 0.75rem 1.5rem;
@@ -78,8 +78,9 @@
             transition: background-color 0.3s ease, transform 0.2s ease;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             display: inline-block; /* Allows margin-top to work and centers it */
+            cursor: pointer; /* Indicate it's clickable */
         }
-        .next-button:hover {
+        .next-button:hover, .play-music-button:hover {
             background-color: #8a2be2; /* Slightly darker on hover */
             transform: translateY(-2px);
         }
@@ -164,8 +165,7 @@
 </head>
 <body>
     <!-- Audio tag for background music -->
-    <!-- The 'src' attribute now points to your uploaded MP3 file -->
-    <audio autoplay loop>
+    <audio id="backgroundMusic" loop>
         <source src="mp3_mickey.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
@@ -175,6 +175,8 @@
     <div class="content-wrapper">
         <div class="welcome-text-section">
             <p class="welcome-text">Thanks for stopping by! My name is <strong>Milk Bear</strong>, and I will be your tour guide today! My boyfriend, <strong>Mocha</strong>, told me that today is a special day...it's your "<strong>ANNIVERSARY</strong>"!!! And soon to be your <strong>BIRTHDAY</strong>! Wow, we have so much to celebrate! <br><br> Anyways, come on in! I'll show you around. Let's go!</p>
+            <button id="playMusicButton" class="play-music-button">Play Music</button>
+            <p class="text-xs text-gray-500 mt-2">Click "Play Music" if you don't hear anything!</p>
         </div>
         <img src="gif_milk.gif" alt="Cute Milk Bear GIF" class="milk-bear-gif" onerror="this.onerror=null;this.src='https://placehold.co/300x300/d8c8f0/8a2be2?text=Milk+Bear+GIF'">
     </div>
@@ -244,6 +246,29 @@
 
         // Create hearts at intervals
         setInterval(createHeart, 500); // Create a new heart every 500ms
+
+        // Get the audio element
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        // Get the play music button
+        const playMusicButton = document.getElementById('playMusicButton');
+
+        // Add an event listener to the button to play the music
+        playMusicButton.addEventListener('click', () => {
+            backgroundMusic.play().catch(error => {
+                console.error("Autoplay prevented:", error);
+                // Optionally, inform the user if autoplay is still blocked
+                // For example, you could show a message on the page
+            });
+            // Hide the button once music starts playing
+            playMusicButton.style.display = 'none';
+        });
+
+        // Try to play music on page load (might be blocked by browser)
+        // This is a common practice, but the button provides a fallback
+        // backgroundMusic.play().catch(error => {
+        //     console.log("Autoplay blocked, user interaction needed to play music.");
+        //     // The button will handle user interaction
+        // });
     </script>
 </body>
 </html>
