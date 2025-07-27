@@ -23,7 +23,7 @@
         }
         /* This class will be added by JavaScript to trigger the fade */
         body.fade-in-bg {
-            background-color: #f5eeff; /* Target very pale lilac background */
+            background-color: #ffffff; /* Changed to white background */
         }
 
         .animated-element {
@@ -128,44 +128,10 @@
             flex: 1 1 calc(50% - 1.5rem); /* Two buttons per row on larger screens, accounting for gap */
             min-width: 200px; /* Minimum width for buttons */
             text-align: center;
-            /* Removed heart-specific properties */
-            position: relative; /* Keep relative for z-index if needed, though not strictly for shape */
-            display: flex; /* Keep flex for text centering */
+            position: relative;
+            display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        /* Removed ::before and ::after for heart shape */
-        /* .puzzle-button::before,
-        .puzzle-button::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: #a878ed;
-            border-radius: 50%;
-        } */
-
-        /* .puzzle-button::before {
-            top: -50%;
-            left: 0;
-        }
-
-        .puzzle-button::after {
-            top: 0;
-            left: 50%;
-        } */
-
-        .puzzle-button-text {
-            /* This class is now removed from HTML, but keeping its styles for reference if needed */
-            /* position: relative; */
-            /* z-index: 10; */
-            /* transform: rotate(45deg); */ /* This rotation is no longer needed */
-            color: white; /* Text color */
-            font-weight: 700;
-            font-size: 1.25rem;
-            text-align: center;
-            line-height: 1.2;
         }
 
         .puzzle-button:hover {
@@ -173,12 +139,6 @@
             transform: translateY(-3px); /* Lift */
             box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 5px 8px -2px rgba(0, 0, 0, 0.1);
         }
-        /* Removed hover for pseudo-elements */
-        /* .puzzle-button:hover::before,
-        .puzzle-button:hover::after {
-            background-color: #8a2be2;
-        } */
-
 
         /* Responsive adjustments */
         @media (min-width: 768px) {
@@ -247,7 +207,7 @@
 <body>
     <!-- The heart image will appear in the center -->
     <!-- IMPORTANT: Replace 'img_heart0.jpg' with the actual path to your image once uploaded -->
-    <img src="img_heart0.jpg" alt="Heart Image" class="heart-image animated-element" onerror="this.onerror=null;this.src='https://placehold.co/400x400/f5eeff/8a2be2?text=Heart+Image+Fallback'">
+    <img src="img_heart0.jpg" alt="Heart Image" class="heart-image animated-element" onerror="this.onerror=null;this.src='https://placehold.co/400x400/ffffff/8a2be2?text=Heart+Image+Fallback'">
 
     <div class="text-box animated-element">
         <p>Here's the treasure that I found! But looks like it's missing four pieces...I need your help in finding them!</p>
