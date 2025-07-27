@@ -221,9 +221,15 @@
     </style>
 </head>
 <body>
+    <!-- Audio tag for background music -->
+    <audio id="backgroundMusic" loop>
+        <source src="mp3_blacktears.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
     <!-- The heart image will appear in the center -->
     <!-- IMPORTANT: Replace 'img_heart0.jpg' with the actual path to your image once uploaded -->
-    <img src="img_heart0.jpg" alt="Heart Image" class="heart-image animated-element" onerror="this.onerror=null;this.src='https://placehold.co/400x400/ffffff/8a2be2?text=Heart+Image+Fallback'">
+    <img src="img_heart0.jpg" alt="Heart Image" class="heart-image animated-element" onerror="this.onerror=null;this.src='https://placehold.co/400x400/ffffff/8a2be2?text=Heart+01+Fallback'">
 
     <div class="text-box animated-element">
         <p>Here's the treasure that I found! But looks like it's missing four pieces...I need your help in finding them!</p>
@@ -242,6 +248,7 @@
             const heartImage = document.querySelector('.heart-image');
             const textBox = document.querySelector('.text-box');
             const puzzleButtonsContainer = document.getElementById('puzzleButtonsContainer');
+            const backgroundMusic = document.getElementById('backgroundMusic');
 
             // Timing variables (in milliseconds)
             const initialDelay = 100; // Delay before background fade starts
@@ -280,6 +287,14 @@
             setTimeout(() => {
                 puzzleButtonsContainer.classList.add('show');
             }, initialDelay + textBoxSlideUpDelay + textBoxSlideUpDuration + flyOffStartDelay + flyOffDuration + buttonsAppearDelay);
+
+            // Attempt to play music automatically on page load.
+            // Note: This might still be blocked by browser autoplay policies
+            // unless there has been prior user interaction on the domain.
+            backgroundMusic.play().catch(error => {
+                console.log("Background music autoplay prevented:", error);
+                // You might want to add a visible message here if music doesn't play automatically
+            });
         });
     </script>
 </body>
