@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle 1: Wordle</title>
+    <!-- Tailwind CSS for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5eeff; /* Very light lilac background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            max-width: 90%;
+            width: 700px;
+            border: 3px solid #d8c8f0; /* Paler lilac border */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #8a2be2; /* Paler purple for heading */
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* 5 columns for letters */
+            grid-template-rows: repeat(6, 1fr); /* 6 rows for guesses */
+            gap: 0.5rem; /* Space between cells */
+            width: 100%;
+            max-width: 350px; /* Max width for the board */
+            margin: 1.5rem auto;
+        }
+        .tile {
+            width: 100%;
+            height: 60px; /* Fixed height for tiles */
+            border: 2px solid #d8c8f0; /* Paler lilac border */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #2d3748; /* Dark text for letters */
+            transition: background-color 0.6s ease, border-color 0.6s ease, transform 0.1s ease;
+            user-select: none; /* Prevent text selection */
+        }
+        .tile.correct {
+            background-color: #6aa84f; /* Green */
+            border-color: #6aa84f;
+            color: white;
+        }
+        .tile.present {
+            background-color: #f1c232; /* Yellow */
+            border-color: #f1c232;
+            color: white;
+        }
+        .tile.absent {
+            background-color: #a6a6a6; /* Gray */
+            border-color: #a6a6a6;
+            color: white;
+        }
+        .tile.empty {
+            background-color: transparent;
+        }
+        .tile.filled {
+            border-color: #8a2be2; /* Darker lilac when filled */
+        }
+
+        #keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 500px; /* Max width for keyboard */
+            margin-top: 1.5rem;
+        }
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.3rem; /* Smaller gap for keys */
+        }
+        .key {
+            background-color: #d8c8f0; /* Paler lilac key background */
+            color: #6a0dad; /* Darker purple key text */
+            padding: 0.8rem 0.5rem;
+            border-radius: 0.4rem;
+            font-size: 1rem;
+            font-weight: 600;
+            flex: 1; /* Distribute space evenly */
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.1s ease, transform 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50px; /* Fixed height for keys */
+        }
+        .key.large {
+            flex: 1.5; /* Make Enter/Backspace larger */
+            font-size: 0.9rem;
+        }
+        .key:hover {
+            background-color: #b19cd9; /* Slightly darker on hover */
+            transform: translateY(-1px);
+        }
+        .key.correct-key {
+            background-color: #6aa84f;
+            color: white;
+        }
+        .key.present-key {
+            background-color: #f1c232;
+            color: white;
+        }
+        .key.absent-key {
+            background-color: #a6a6a6;
+            color: white;
+        }
+
+        #message-area {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            color: #be185d; /* Pink for messages */
+            min-height: 25px; /* Reserve space for messages */
+        }
+
+        /* Celebration Screen Styles */
+        #celebration-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #a878ed, #e8dcf5); /* Lilac gradient */
+            display: flex;
+            flex-direction: column; /* Default to column */
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden; /* Hidden by default */
+            transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+            z-index: 1000; /* Ensure it's on top of everything */
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        #celebration-screen.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #celebration-screen h2 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+        }
+        #celebration-screen p {
+            font-size: 1.8rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.5;
+        }
+        .celebration-button {
+            background-color: #6aa84f; /* Green for success */
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.5rem;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.15), 0 3px 6px -1px rgba(0, 0, 0, 0.08);
+            display: inline-block;
+        }
+        .celebration-button:hover {
+            background-color: #5b8c42; /* Darker green on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 5px 8px -2px rgba(0, 0, 0, 0.1);
+        }
+        .celebration-content {
+            display: flex;
+            flex-direction: column; /* Stack vertically by default */
+            align-items: center;
+            gap: 2rem; /* Space between elements */
+            max-width: 1000px; /* Max width for the content inside celebration screen */
+            width: 90%;
+        }
+        .celebration-text-and-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 2; /* Allow text to take more space */
+        }
+        .celebration-image {
+            width: 100%;
+            max-width: 200px; /* Size for celebration images */
+            height: auto;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .tile {
+                height: 50px;
+                font-size: 1.8rem;
+            }
+            .key {
+                font-size: 0.9rem;
+                height: 45px;
+            }
+            .key.large {
+                font-size: 0.8rem;
+            }
+            .container {
+                padding: 1.5rem;
+            }
+            #celebration-screen h2 {
+                font-size: 3rem;
+            }
+            #celebration-screen p {
+                font-size: 1.4rem;
+            }
+            .celebration-button {
+                font-size: 1.2rem;
+                padding: 0.8rem 2rem;
+            }
+            .celebration-image {
+                max-width: 150px;
+            }
+        }
+        @media (min-width: 769px) { /* For larger screens, arrange content in a row */
+            #celebration-screen .celebration-content {
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+            }
+            #celebration-screen .celebration-text-and-button {
+                text-align: center; /* Keep text centered even in row layout */
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .tile {
+                height: 45px;
+                font-size: 1.5rem;
+            }
+            .key {
+                font-size: 0.75rem;
+                height: 40px;
+            }
+            .key.large {
+                font-size: 0.7rem;
+            }
+            .container {
+                padding: 1rem;
+            }
+            #keyboard {
+                max-width: 320px;
+            }
+            #celebration-screen h2 {
+                font-size: 2.5rem;
+            }
+            #celebration-screen p {
+                font-size: 1.1rem;
+            }
+            .celebration-button {
+                font-size: 1rem;
+                padding: 0.7rem 1.5rem;
+            }
+            .celebration-image {
+                max-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wordle Puzzle!</h1>
+        <div id="game-board">
+            <!-- Tiles will be generated by JavaScript -->
+        </div>
+        <div id="message-area"></div>
+        <div id="keyboard">
+            <div class="keyboard-row">
+                <div class="key" data-key="q">Q</div>
+                <div class="key" data-key="w">W</div>
+                <div class="key" data-key="e">E</div>
+                <div class="key" data-key="r">R</div>
+                <div class="key" data-key="t">T</div>
+                <div class="key" data-key="y">Y</div>
+                <div class="key" data-key="u">U</div>
+                <div class="key" data-key="i">I</div>
+                <div class="key" data-key="o">O</div>
+                <div class="key" data-key="p">P</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key" data-key="a">A</div>
+                <div class="key" data-key="s">S</div>
+                <div class="key" data-key="d">D</div>
+                <div class="key" data-key="f">F</div>
+                <div class="key" data-key="g">G</div>
+                <div class="key" data-key="h">H</div>
+                <div class="key" data-key="j">J</div>
+                <div class="key" data-key="k">K</div>
+                <div class="key" data-key="l">L</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key large" data-key="enter">Enter</div>
+                <div class="key" data-key="z">Z</div>
+                <div class="key" data-key="x">X</div>
+                <div class="key" data-key="c">C</div>
+                <div class="key" data-key="v">V</div>
+                <div class="key" data-key="b">B</div>
+                <div class="key" data-key="n">N</div>
+                <div class="key" data-key="m">M</div>
+                <div class="key large" data-key="backspace">Backspace</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration Screen -->
+    <div id="celebration-screen">
+        <audio id="celebrationAudio" src="mp3_mickey.mp3" preload="auto"></audio>
+        <div class="celebration-content">
+            <img src="img_heart1.jpg" alt="Celebration Image 1" class="celebration-image" onerror="this.onerror=null;this.src='https://placehold.co/200x200/f5eeff/8a2be2?text=Heart+1'">
+            <div class="celebration-text-and-button">
+                <h2>CONGRATULATIONS!</h2>
+                <p>You found the first piece of the treasure! You truly are a CUTIE!</p>
+                <a href="puzzle1solved.html" class="celebration-button">Next Puzzle!</a>
+            </div>
+            <img src="img_jesse1.jpg" alt="Celebration Image 2" class="celebration-image" onerror="this.onerror=null;this.src='https://placehold.co/200x200/f5eeff/8a2be2?text=Jesse+1'">
+        </div>
+    </div>
+
+    <script>
+        const solution = "CUTIE"; // The Wordle solution word
+        const maxGuesses = 6;
+        let currentGuess = [];
+        let currentRow = 0;
+        let gameEnded = false;
+
+        const board = document.getElementById('game-board');
+        const messageArea = document.getElementById('message-area');
+        const keyboard = document.getElementById('keyboard');
+        const celebrationScreen = document.getElementById('celebration-screen');
+        const celebrationAudio = document.getElementById('celebrationAudio');
+
+        // Initialize the game board
+        function initializeBoard() {
+            board.innerHTML = ''; // Clear existing tiles
+            for (let i = 0; i < maxGuesses; i++) {
+                for (let j = 0; j < 5; j++) {
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile', 'empty');
+                    tile.id = `tile-${i}-${j}`;
+                    board.appendChild(tile);
+                }
+            }
+        }
+
+        // Reset keyboard colors
+        function resetKeyboardColors() {
+            const keys = document.querySelectorAll('.key');
+            keys.forEach(key => {
+                key.classList.remove('correct-key', 'present-key', 'absent-key');
+            });
+        }
+
+        // Reset the game state
+        function resetGame() {
+            currentGuess = [];
+            currentRow = 0;
+            gameEnded = false;
+            messageArea.textContent = ''; // Clear any messages
+            initializeBoard(); // Re-draw the board
+            resetKeyboardColors(); // Reset keyboard colors
+        }
+
+        // Update the display with the current guess
+        function updateBoard() {
+            for (let i = 0; i < 5; i++) {
+                const tile = document.getElementById(`tile-${currentRow}-${i}`);
+                tile.textContent = currentGuess[i] || '';
+                if (currentGuess[i]) {
+                    tile.classList.remove('empty');
+                    tile.classList.add('filled');
+                } else {
+                    tile.classList.remove('filled');
+                    tile.classList.add('empty');
+                }
+            }
+        }
+
+        // Display a message to the user
+        function showMessage(message, duration = 2000) {
+            messageArea.textContent = message;
+            if (duration > 0) { // Only clear if a duration is specified
+                setTimeout(() => {
+                    messageArea.textContent = '';
+                }, duration);
+            }
+        }
+
+        // Handle letter input
+        function handleLetterInput(key) {
+            if (currentGuess.length < 5 && !gameEnded) {
+                currentGuess.push(key.toUpperCase());
+                updateBoard();
+            }
+        }
+
+        // Handle Backspace
+        function handleBackspace() {
+            if (currentGuess.length > 0 && !gameEnded) {
+                currentGuess.pop();
+                updateBoard();
+            }
+        }
+
+        // Handle Enter (submit guess)
+        function handleEnter() {
+            if (gameEnded) return;
+
+            if (currentGuess.length !== 5) {
+                showMessage("Not enough letters!");
+                return;
+            }
+
+            const guessString = currentGuess.join('');
+            const solutionLetters = solution.split('');
+            const guessLetters = currentGuess.slice(); // Create a copy to modify
+
+            const tileElements = [];
+            for (let i = 0; i < 5; i++) {
+                tileElements.push(document.getElementById(`tile-${currentRow}-${i}`));
+            }
+
+            // First pass: Mark correct (green) letters
+            for (let i = 0; i < 5; i++) {
+                if (guessLetters[i] === solutionLetters[i]) {
+                    tileElements[i].classList.add('correct');
+                    const keyElement = document.querySelector(`.key[data-key="${guessLetters[i].toLowerCase()}"]`);
+                    if (keyElement) {
+                        keyElement.classList.remove('present-key', 'absent-key'); // Ensure no conflicting colors
+                        keyElement.classList.add('correct-key');
+                    }
+                    solutionLetters[i] = null; // Mark as used
+                    guessLetters[i] = null; // Mark as used
+                }
+            }
+
+            // Second pass: Mark present (yellow) and absent (gray) letters
+            for (let i = 0; i < 5; i++) {
+                if (guessLetters[i] !== null) { // If not already marked correct
+                    const solutionIndex = solutionLetters.indexOf(guessLetters[i]);
+                    if (solutionIndex !== -1) {
+                        tileElements[i].classList.add('present');
+                        const keyElement = document.querySelector(`.key[data-key="${guessLetters[i].toLowerCase()}"]`);
+                        if (keyElement && !keyElement.classList.contains('correct-key')) { // Don't override green
+                            keyElement.classList.remove('absent-key'); // Ensure no conflicting colors
+                            keyElement.classList.add('present-key');
+                        }
+                        solutionLetters[solutionIndex] = null; // Mark as used
+                    } else {
+                        tileElements[i].classList.add('absent');
+                        const keyElement = document.querySelector(`.key[data-key="${guessLetters[i].toLowerCase()}"]`);
+                        if (keyElement && !keyElement.classList.contains('correct-key') && !keyElement.classList.contains('present-key')) {
+                            keyElement.classList.add('absent-key');
+                        }
+                    }
+                }
+            }
+
+            // Check for win/loss
+            if (guessString === solution.toUpperCase()) {
+                showMessage("You got it, CUTIE! You found the first piece!", 5000);
+                gameEnded = true;
+                // Show celebration screen after a short delay
+                setTimeout(() => {
+                    celebrationScreen.classList.add('show');
+                    celebrationAudio.play().catch(e => console.error("Celebration audio play failed:", e));
+                }, 1000); // 1 second delay before showing celebration
+            } else if (currentRow === maxGuesses - 1) {
+                showMessage("HAIYA...you're better than this. Start over.", 3000); // Display message for 3 seconds
+                gameEnded = true;
+                setTimeout(resetGame, 3500); // Reset game after message
+            } else {
+                currentRow++;
+                currentGuess = [];
+            }
+        }
+
+        // Event listener for physical keyboard input
+        document.addEventListener('keydown', (event) => {
+            if (gameEnded && event.key !== 'Enter') return; // Allow Enter to trigger reset if gameEnded
+
+            const key = event.key.toLowerCase();
+            if (key.match(/^[a-z]$/)) {
+                handleLetterInput(key);
+            } else if (key === 'backspace') {
+                handleBackspace();
+            } else if (key === 'enter') {
+                handleEnter();
+            }
+        });
+
+        // Event listener for on-screen keyboard clicks
+        keyboard.addEventListener('click', (event) => {
+            if (gameEnded && event.target.dataset.key !== 'enter') return; // Allow Enter to trigger reset if gameEnded
+
+            const target = event.target;
+            if (target.classList.contains('key')) {
+                const key = target.dataset.key;
+                if (key === 'enter') {
+                    handleEnter();
+                } else if (key === 'backspace') {
+                    handleBackspace();
+                } else {
+                    handleLetterInput(key);
+                }
+            }
+        });
+
+        // Initialize the board when the page loads
+        initializeBoard();
+    </script>
+</body>
+</html>
