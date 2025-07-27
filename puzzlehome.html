@@ -140,6 +140,22 @@
             box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 5px 8px -2px rgba(0, 0, 0, 0.1);
         }
 
+        /* Disabled Button Styles */
+        .puzzle-button.disabled {
+            background-color: #e0e0e0; /* Lighter gray background */
+            color: #a0a0a0; /* Lighter gray text */
+            cursor: not-allowed; /* Indicate it's not clickable */
+            box-shadow: none; /* No shadow for disabled state */
+            transform: none; /* No transform on hover */
+            pointer-events: none; /* Crucial: prevents click events */
+            opacity: 0.7; /* Slightly transparent */
+        }
+        .puzzle-button.disabled:hover {
+            background-color: #e0e0e0; /* No change on hover */
+            transform: none; /* No lift on hover */
+            box-shadow: none; /* No shadow on hover */
+        }
+
         /* Responsive adjustments */
         @media (min-width: 768px) {
             .heart-image {
@@ -215,9 +231,9 @@
 
     <div class="puzzle-buttons-container" id="puzzleButtonsContainer">
         <a href="puzzle1.html" class="puzzle-button">Puzzle 1</a>
-        <a href="puzzle2.html" class="puzzle-button">Puzzle 2</a>
-        <a href="puzzle3.html" class="puzzle-button">Puzzle 3</a>
-        <a href="puzzle4.html" class="puzzle-button">Puzzle 4</a>
+        <a class="puzzle-button disabled">Puzzle 2</a>
+        <a class="puzzle-button disabled">Puzzle 3</a>
+        <a class="puzzle-button disabled">Puzzle 4</a>
     </div>
 
     <script>
