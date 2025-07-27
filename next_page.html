@@ -19,6 +19,7 @@
             margin: 0;
             padding: 1rem;
             box-sizing: border-box;
+            overflow: hidden; /* Hide overflow for heart animations */
         }
         .main-content-wrapper {
             display: flex;
@@ -32,6 +33,8 @@
             max-width: 90%;
             width: 1000px; /* Wider container for content */
             border: 3px solid #d8c8f0; /* Paler lilac border */
+            position: relative; /* Ensure it's above hearts */
+            z-index: 10; /* Higher z-index than hearts */
         }
         .gif-container {
             flex: 1; /* Allows GIFs to take available space */
@@ -66,6 +69,8 @@
             display: flex;
             gap: 1.5rem; /* Space between buttons */
             margin-top: 2rem; /* Space from the content box */
+            position: relative; /* Ensure it's above hearts */
+            z-index: 10; /* Higher z-index than hearts */
         }
 
         /* Button Styles (reused for both) */
@@ -84,6 +89,45 @@
         .page-button:hover {
             background-color: #8a2be2; /* Slightly darker on hover */
             transform: translateY(-2px);
+        }
+
+        /* Heart animation styles (copied from index.html) */
+        .heart-animation {
+            position: fixed; /* Fixed position relative to viewport */
+            background-color: #e8dcf5; /* Very pale lilac heart */
+            z-index: -1; /* Place hearts behind other content */
+        }
+        .heart-animation::before,
+        .heart-animation::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #e8dcf5; /* Very pale lilac heart */
+            border-radius: 50%;
+        }
+        .heart-animation::before {
+            top: -50%;
+            left: 0;
+        }
+        .heart-animation::after {
+            top: 0;
+            left: 50%;
+        }
+
+        /* Generic heart animation using CSS variables for dynamic translation */
+        @keyframes floatHeart {
+            0% {
+                transform: rotate(-45deg) scale(0.5); /* Initial rotation and scale */
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--translate-x), var(--translate-y)) rotate(-45deg) scale(1.2); /* Move and scale */
+                opacity: 0;
+            }
         }
 
         /* Responsive adjustments */
@@ -141,5 +185,70 @@
         <a href="index.html" class="page-button">Back</a>
         <a href="puzzlehome.html" class="page-button">Next</a>
     </div>
+
+    <script>
+        // Function to create and animate a heart (copied from index.html)
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart-animation');
+            document.body.appendChild(heart);
+
+            // Random size for variety
+            const size = Math.random() * 40 + 20; // Hearts between 20px and 60px
+            heart.style.width = `${size}px`;
+            heart.style.height = `${size}px`;
+
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const buffer = 50; // How far outside the screen to start/end
+
+            // Randomly choose an entry side (0: top, 1: right, 2: bottom, 3: left)
+            const entrySide = Math.floor(Math.random() * 4);
+
+            let translateX = 0;
+            let translateY = 0;
+
+            switch (entrySide) {
+                case 0: // From Top
+                    heart.style.left = `${Math.random() * viewportWidth}px`;
+                    heart.style.top = `${-size - buffer}px`; // Start above the viewport
+                    translateY = viewportHeight + size + buffer; // Move down past the bottom
+                    break;
+                case 1: // From Right
+                    heart.style.top = `${Math.random() * viewportHeight}px`;
+                    heart.style.left = `${viewportWidth + buffer}px`; // Start right of the viewport
+                    translateX = -(viewportWidth + size + buffer); // Move left past the left edge
+                    break;
+                case 2: // From Bottom
+                    heart.style.top = `${viewportHeight + buffer}px`; // Start below the viewport
+                    heart.style.left = `${Math.random() * viewportWidth}px`;
+                    translateY = -(viewportHeight + size + buffer); // Move up past the top
+                    break;
+                case 3: // From Left
+                    heart.style.top = `${Math.random() * viewportHeight}px`;
+                    heart.style.left = `${-size - buffer}px`; // Start left of the viewport
+                    translateX = viewportWidth + size + buffer; // Move right past the right edge
+                    break;
+            }
+
+            // Set CSS variables for the animation
+            heart.style.setProperty('--translate-x', `${translateX}px`);
+            heart.style.setProperty('--translate-y', `${translateY}px`);
+
+            // Apply the general heart animation
+            heart.style.animationName = 'floatHeart';
+            heart.style.animationDuration = `${Math.random() * 4 + 4}s`; // Random duration
+            heart.style.animationDelay = `${Math.random() * 2}s`; // Random delay
+            heart.style.animationFillMode = 'forwards'; // Keep the heart at its final state (hidden)
+
+            // Remove heart after animation to prevent memory leak
+            heart.addEventListener('animationend', () => {
+                heart.remove();
+            });
+        }
+
+        // Create hearts at intervals
+        setInterval(createHeart, 500); // Create a new heart every 500ms
+    </script>
 </body>
 </html>
