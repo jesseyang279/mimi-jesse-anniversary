@@ -452,8 +452,9 @@
                 enableButtons();
                 messageArea.textContent = ''; // Clear previous messages
             } else {
-                console.log("Calling showCongratulations()"); // Debug log
-                // All questions answered correctly
+                // This 'else' block should ideally not be reached if handleAnswer correctly triggers celebration.
+                // It's a fallback, but direct call from handleAnswer is preferred.
+                console.log("loadQuestion: All questions answered, calling showCongratulations as fallback.");
                 showCongratulations();
             }
         }
@@ -465,10 +466,18 @@
 
             if (selectedOptionKey === q.correctAnswerKey) {
                 showMessage("Correct!", 'success', 1000);
-                currentQuestionIndex++;
-                setTimeout(() => {
-                    loadQuestion(); // Load next question after a short delay
-                }, 1200); // Give time for message to be seen
+                currentQuestionIndex++; // Increment first
+
+                if (currentQuestionIndex === questions.length) { // Check if it's the last question
+                    console.log("Last question answered correctly. Triggering celebration."); // Debug log
+                    setTimeout(() => {
+                        showCongratulations(); // Call directly if it's the last question
+                    }, 1200); // Give time for "Correct!" message
+                } else {
+                    setTimeout(() => {
+                        loadQuestion(); // Load next question if not the last
+                    }, 1200); // Give time for message to be seen
+                }
             } else {
                 showMessage("Wrong! Starting over...", 'error', 1500);
                 currentQuestionIndex = 0; // Reset to first question
@@ -490,17 +499,23 @@
 
         function showCongratulations() {
             console.log("Celebration screen should be visible now."); // Debug log
-            backgroundMusic.pause(); // Pause background music
-            backgroundMusic.currentTime = 0; // Rewind for next play
+            // Pause background music if it's playing
+            if (!backgroundMusic.paused) {
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0; // Rewind for next play
+            }
 
             celebrationScreen.classList.add('show');
             celebrationAudio.play().catch(e => console.error("Celebration audio play failed:", e));
         }
 
         function playBackgroundMusic() {
-            backgroundMusic.play().catch(error => {
-                console.log("Background music autoplay prevented:", error);
-            });
+            // Ensure the audio element exists before trying to play
+            if (backgroundMusic) {
+                backgroundMusic.play().catch(error => {
+                    console.log("Background music autoplay prevented:", error);
+                });
+            }
         }
 
         // Event Listeners
