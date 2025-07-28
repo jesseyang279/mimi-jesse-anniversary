@@ -302,6 +302,11 @@
     </style>
 </head>
 <body>
+    <!-- Audio tag for background music -->
+    <audio id="backgroundMusic" loop>
+        <source src="mp3_blacktears.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
 
     <div class="container">
         <h1>Puzzle 4: Boyfriend Quiz</h1>
@@ -434,6 +439,7 @@
 
         // Load a question
         function loadQuestion() {
+            console.log("Loading question:", currentQuestionIndex); // Debug log
             if (currentQuestionIndex < questions.length) {
                 const q = questions[currentQuestionIndex];
                 questionNumberElem.textContent = `Question ${currentQuestionIndex + 1}/${questions.length}`;
@@ -450,6 +456,7 @@
                 enableButtons();
                 messageArea.textContent = ''; // Clear previous messages
             } else {
+                console.log("Calling showCongratulations()"); // Debug log
                 // All questions answered correctly
                 showCongratulations();
             }
@@ -486,6 +493,7 @@
         }
 
         function showCongratulations() {
+            console.log("Celebration screen should be visible now."); // Debug log
             backgroundMusic.pause(); // Pause background music
             backgroundMusic.currentTime = 0; // Rewind for next play
 
