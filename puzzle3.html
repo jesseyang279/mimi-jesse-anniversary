@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle 3: Connections</title>
+    <!-- Tailwind CSS for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5eeff; /* Very light lilac background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow-x: hidden; /* Prevent horizontal scrollbar */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            max-width: 90%;
+            width: 900px; /* Wider container for the game */
+            border: 3px solid #d8c8f0; /* Paler lilac border */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #8a2be2; /* Paler purple for heading */
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        .instructions {
+            color: #6a0dad;
+            font-size: 1rem;
+            margin-bottom: 0; /* Changed to 0 */
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        #game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem; /* Decreased gap here */
+            width: 100%;
+            align-items: center;
+        }
+
+        #solved-categories-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .solved-category-group {
+            background-color: #e0f2fe; /* Light blue for solved categories */
+            border: 1px solid #90caf9;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            animation: fadeIn 0.5s ease-out;
+        }
+        .solved-category-group .category-name {
+            font-weight: 700;
+            color: #2196f3; /* Blue for category name */
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        .solved-category-group .category-words {
+            font-size: 0.9rem;
+            color: #42a5f5; /* Lighter blue for words */
+        }
+
+
+        #word-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 columns */
+            gap: 0.75rem; /* Space between cards */
+            width: 100%;
+            max-width: 600px; /* Max width for the grid */
+            margin: 0 auto;
+        }
+        .word-card {
+            background-color: #f0e6fa; /* Paler lilac for cards */
+            color: #6a0dad; /* Dark purple text */
+            padding: 1.25rem 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            user-select: none; /* Prevent text selection */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80px; /* Ensure consistent card height */
+        }
+        .word-card:hover {
+            background-color: #e8dcf5; /* Slightly darker on hover */
+            transform: translateY(-2px);
+        }
+        .word-card.selected {
+            background-color: #d8c8f0; /* Darker lilac when selected */
+            border: 2px solid #8a2be2; /* Purple border */
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.15);
+        }
+        .word-card.solved {
+            background-color: #e0f2fe; /* Light blue for solved cards */
+            color: #2196f3; /* Blue text for solved cards */
+            cursor: default;
+            pointer-events: none; /* Make solved cards unclickable */
+            order: -1; /* Move solved cards to the top of the flex container */
+            animation: fadeIn 0.5s ease-out; /* Fade in when moved */
+        }
+        .word-card.incorrect {
+            animation: shake 0.5s; /* Shake animation for incorrect guesses */
+            border: 2px solid #ef4444; /* Red border for incorrect */
+        }
+
+        /* Shake animation for incorrect guesses */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #controls {
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap */
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        .control-button {
+            background-color: #a878ed; /* Matching purple */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            flex: 1 1 auto; /* Allow buttons to grow/shrink */
+            min-width: 120px; /* Minimum width for buttons */
+        }
+        .control-button:hover {
+            background-color: #8a2be2;
+            transform: translateY(-2px);
+        }
+        .control-button:disabled {
+            background-color: #e0e0e0;
+            color: #a0a0a0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        #lives-container {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+        .life-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #a878ed; /* Purple for lives */
+            border: 1px solid #6a0dad;
+            transition: background-color 0.3s ease;
+        }
+        .life-dot.lost {
+            background-color: #e0e0e0; /* Gray for lost lives */
+        }
+
+        #message-area {
+            margin-top: 0.5rem;
+            margin-bottom: 0; /* Changed to 0 */
+            font-size: 1.1rem;
+            color: #be185d; /* Pink for messages */
+            min-height: 25px; /* Reserve space for messages */
+        }
+
+        /* Game Over Overlay (kept for consistency with lose screen) */
+        .game-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8); /* Dark overlay */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            z-index: 100;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        .game-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .game-overlay h2 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+        }
+        .game-overlay p {
+            font-size: 1.8rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.5;
+        }
+        .overlay-button {
+            background-color: #6aa84f; /* Green for success */
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.5rem;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.15), 0 3px 6px -1px rgba(0, 0, 0, 0.08);
+            display: inline-block;
+        }
+        .overlay-button:hover {
+            background-color: #5b8c42; /* Darker green on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 5px 8px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Celebration Screen Styles (copied from Puzzle 1/2 Solved) */
+        #celebration-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #a878ed, #e8dcf5); /* Lilac gradient */
+            display: flex;
+            flex-direction: column; /* Default to column */
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden; /* Hidden by default */
+            transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+            z-index: 1000; /* Ensure it's on top of everything */
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        #celebration-screen.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #celebration-screen h2 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+        }
+        #celebration-screen p {
+            font-size: 1.8rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.5;
+        }
+        .celebration-button {
+            background-color: #6aa84f; /* Green for success */
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.5rem;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.15), 0 3px 6px -1px rgba(0, 0, 0, 0.08);
+            display: inline-block;
+        }
+        .celebration-button:hover {
+            background-color: #5b8c42; /* Darker green on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 5px 8px -2px rgba(0, 0, 0, 0.1);
+        }
+        .celebration-content {
+            display: flex;
+            flex-direction: column; /* Stack vertically by default */
+            align-items: center;
+            gap: 2rem; /* Space between elements */
+            max-width: 1000px; /* Max width for the content inside celebration screen */
+            width: 90%;
+        }
+        .celebration-text-and-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 2; /* Allow text to take more space */
+        }
+        .celebration-image {
+            width: 100%;
+            max-width: 200px; /* Size for celebration images */
+            height: auto;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive adjustments for celebration screen */
+        @media (min-width: 769px) {
+            #celebration-screen .celebration-content {
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+            }
+            #celebration-screen .celebration-text-and-button {
+                text-align: center; /* Keep text centered even in row layout */
+            }
+        }
+        @media (max-width: 768px) {
+            #celebration-screen h2 {
+                font-size: 3rem;
+            }
+            #celebration-screen p {
+                font-size: 1.4rem;
+            }
+            .celebration-button {
+                font-size: 1.2rem;
+                padding: 0.8rem 2rem;
+            }
+            .celebration-image {
+                max-width: 150px;
+            }
+        }
+        @media (max-width: 480px) {
+            #celebration-screen h2 {
+                font-size: 2.5rem;
+            }
+            #celebration-screen p {
+                font-size: 1.1rem;
+            }
+            .celebration-button {
+                font-size: 1rem;
+                padding: 0.7rem 1.5rem;
+            }
+            .celebration-image {
+                max-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio tag for background music -->
+    <audio id="backgroundMusic" loop>
+        <source src="mp3_blacktears.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div class="container">
+        <h1>Puzzle 3: Connections</h1>
+        <p class="instructions">
+            Find groups of four items that share something in common. Select four words and click "Submit".
+            Make four mistakes, and it's game over!
+        </p>
+
+        <div id="game-area">
+            <!-- Moved message-area here -->
+            <div id="message-area"></div>
+
+            <div id="solved-categories-container">
+                <!-- Solved categories will be rendered here -->
+            </div>
+
+            <div id="word-grid">
+                <!-- Word cards will be generated by JavaScript -->
+            </div>
+
+            <div id="controls">
+                <button id="shuffle-button" class="control-button">Shuffle</button>
+                <button id="deselect-button" class="control-button">Deselect All</button>
+                <button id="submit-button" class="control-button">Submit</button>
+            </div>
+
+            <div id="lives-container">
+                <span class="text-sm font-semibold text-gray-600 mr-2">Mistakes:</span>
+                <div class="life-dot"></div>
+                <div class="life-dot"></div>
+                <div class="life-dot"></div>
+                <div class="life-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration Screen (replaces win-overlay) -->
+    <div id="celebration-screen">
+        <audio id="celebrationAudio" src="mp3_mickey.mp3" preload="auto"></audio>
+        <div class="celebration-content">
+            <img src="img_heart2.jpg" alt="Celebration Image 1" class="celebration-image" onerror="this.onerror=null;this.src='https://placehold.co/200x200/f5eeff/8a2be2?text=Heart+2'">
+            <div class="celebration-text-and-button">
+                <h2>CONGRATULATIONS!</h2>
+                <p>You solved all the Connections! Amazing!</p>
+                <a href="puzzle3solved.html" class="celebration-button">Next Puzzle!</a>
+            </div>
+            <img src="gif_hug.gif" alt="Celebration Image 2" class="celebration-image" onerror="this.onerror=null;this.src='https://placehold.co/200x200/f5eeff/8a2be2?text=Hug+GIF'">
+        </div>
+    </div>
+
+    <!-- Lose Overlay (remains as game-overlay) -->
+    <div id="lose-overlay" class="game-overlay">
+        <h2>GAME OVER!</h2>
+        <p>You ran out of guesses. Better luck next time!</p>
+        <button id="restart-button" class="overlay-button">Try Again</button>
+    </div>
+
+    <script>
+        // Game Data
+        const categories = [
+            { name: "Last letters of Jesse's video games!", words: ["ANT", "APE", "ENDS", "MON"], difficulty: "Easy" },
+            { name: "Related to our first date!", words: ["GHOST", "DAISO", "UDON", "JAPAN"], difficulty: "Medium" },
+            { name: "Mimi's favorite foods!", words: ["CORN", "MANGO", "CHIRASHI", "BUBBIES"], difficulty: "Medium" },
+            { name: "Related to UCSF residency!", words: ["SHELL", "CAT", "MINION", "STAR"], difficulty: "Hard" }
+        ];
+
+        let allWords = []; // All words combined from categories
+        let currentWordElements = []; // References to the HTML elements for words
+        let selectedWords = []; // Words currently selected by the user
+        let incorrectGuesses = 0;
+        const maxIncorrectGuesses = 4;
+        let solvedCategories = []; // Categories that have been correctly identified
+
+        // DOM Elements
+        const wordGrid = document.getElementById('word-grid');
+        const shuffleButton = document.getElementById('shuffle-button');
+        const deselectButton = document.getElementById('deselect-button');
+        const submitButton = document.getElementById('submit-button');
+        const livesContainer = document.getElementById('lives-container');
+        const messageArea = document.getElementById('message-area');
+        const solvedCategoriesContainer = document.getElementById('solved-categories-container');
+        // Updated variable name for consistency
+        const celebrationScreen = document.getElementById('celebration-screen');
+        const celebrationAudio = document.getElementById('celebrationAudio'); // New audio element reference
+        const loseOverlay = document.getElementById('lose-overlay');
+        const restartButton = document.getElementById('restart-button');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+
+        // Function to show messages
+        function showMessage(message, type = 'error', duration = 3000) {
+            messageArea.textContent = message;
+            messageArea.style.color = type === 'success' ? '#6aa84f' : '#be185d';
+            if (duration > 0) {
+                setTimeout(() => {
+                    messageArea.textContent = '';
+                }, duration);
+            }
+        }
+
+        // Shuffle array function (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Initialize the game
+        function initializeGame() {
+            // Reset game state
+            allWords = [];
+            currentWordElements = [];
+            selectedWords = [];
+            incorrectGuesses = 0;
+            solvedCategories = [];
+
+            // Clear UI
+            wordGrid.innerHTML = '';
+            solvedCategoriesContainer.innerHTML = '';
+            messageArea.textContent = '';
+            celebrationScreen.classList.remove('show'); // Use new variable name
+            loseOverlay.classList.remove('show');
+            updateLivesDisplay();
+            enableButtons();
+
+            // Populate allWords with word objects (word, categoryName)
+            categories.forEach(cat => {
+                cat.words.forEach(word => {
+                    allWords.push({ text: word, category: cat.name, difficulty: cat.difficulty });
+                });
+            });
+
+            shuffleAndRenderWords();
+            playBackgroundMusic();
+        }
+
+        function shuffleAndRenderWords() {
+            shuffleArray(allWords);
+            renderWordGrid();
+        }
+
+        function renderWordGrid() {
+            wordGrid.innerHTML = ''; // Clear existing cards
+            allWords.forEach(wordObj => {
+                // Only render words that haven't been solved yet
+                if (!solvedCategories.some(sc => sc.words.includes(wordObj.text))) {
+                    const card = document.createElement('div');
+                    card.classList.add('word-card');
+                    card.textContent = wordObj.text;
+                    card.dataset.word = wordObj.text; // Store word for easy lookup
+                    card.addEventListener('click', () => toggleWordSelection(card, wordObj));
+                    wordGrid.appendChild(card);
+                }
+            });
+            // Re-select words that were selected before a shuffle (if any)
+            selectedWords.forEach(wordText => {
+                const card = document.querySelector(`.word-card[data-word="${wordText}"]`);
+                if (card) {
+                    card.classList.add('selected');
+                }
+            });
+            updateSubmitButtonState();
+        }
+
+        function toggleWordSelection(card, wordObj) {
+            if (card.classList.contains('solved')) return; // Cannot select solved words
+
+            const wordText = wordObj.text;
+            const index = selectedWords.indexOf(wordText);
+
+            if (index > -1) {
+                // Deselect
+                selectedWords.splice(index, 1);
+                card.classList.remove('selected');
+            } else {
+                // Select
+                if (selectedWords.length < 4) {
+                    selectedWords.push(wordText);
+                    card.classList.add('selected');
+                } else {
+                    showMessage("You can only select 4 words.");
+                }
+            }
+            updateSubmitButtonState();
+        }
+
+        function updateSubmitButtonState() {
+            if (selectedWords.length === 4) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        }
+
+        function deselectAllWords() {
+            selectedWords = [];
+            document.querySelectorAll('.word-card.selected').forEach(card => {
+                card.classList.remove('selected');
+            });
+            updateSubmitButtonState();
+        }
+
+        function submitGuess() {
+            if (selectedWords.length !== 4) {
+                showMessage("Please select exactly 4 words.");
+                return;
+            }
+
+            let matchedCategory = null;
+            let isCorrect = false;
+
+            for (const cat of categories) {
+                const allInCat = selectedWords.every(word => cat.words.includes(word));
+                const categoryAlreadySolved = solvedCategories.some(sc => sc.name === cat.name);
+
+                if (allInCat && !categoryAlreadySolved) {
+                    const sortedSelected = [...selectedWords].sort();
+                    const sortedCategoryWords = [...cat.words].sort();
+                    if (JSON.stringify(sortedSelected) === JSON.stringify(sortedCategoryWords)) {
+                        matchedCategory = cat;
+                        isCorrect = true;
+                        break;
+                    }
+                }
+            }
+
+            if (isCorrect) {
+                handleCorrectGuess(matchedCategory);
+            } else {
+                // Handle incorrect guess, but first check for "One Away"
+                let isOneAway = false;
+                if (incorrectGuesses < maxIncorrectGuesses) { // Only check if not already game over
+                    for (const cat of categories) {
+                        if (!solvedCategories.some(sc => sc.name === cat.name)) { // Only check unsolved categories
+                            let countMatches = 0;
+                            for (const selectedWord of selectedWords) {
+                                if (cat.words.includes(selectedWord)) {
+                                    countMatches++;
+                                }
+                            }
+                            if (countMatches === 3) {
+                                isOneAway = true;
+                                break; // Found a "one away" category
+                            }
+                        }
+                    }
+                }
+
+                if (isOneAway) {
+                    incorrectGuesses++; // Still counts as a mistake
+                    updateLivesDisplay();
+                    showMessage("One away...", 'error'); // Specific message for one away
+                    // Still shake the cards and deselect after animation
+                    document.querySelectorAll('.word-card.selected').forEach(card => {
+                        card.classList.add('incorrect');
+                    });
+                    setTimeout(() => {
+                        document.querySelectorAll('.word-card.incorrect').forEach(card => {
+                            card.classList.remove('incorrect');
+                            card.classList.remove('selected');
+                        });
+                        selectedWords = [];
+                        updateSubmitButtonState();
+                        checkLoseCondition(); // Check if this mistake led to game over
+                    }, 700);
+                } else {
+                    // Regular incorrect guess
+                    handleIncorrectGuess();
+                }
+            }
+        }
+
+        function handleCorrectGuess(category) {
+            showMessage(`Correct! Category: ${category.name}`, 'success');
+
+            // Mark selected cards as solved and move them to solved area
+            const solvedWordTexts = [];
+            selectedWords.forEach(wordText => {
+                const card = document.querySelector(`.word-card[data-word="${wordText}"]`);
+                if (card) {
+                    card.classList.add('solved');
+                    card.classList.remove('selected'); // Ensure selected class is removed
+                    solvedWordTexts.push(wordText);
+                }
+            });
+
+            // Add to solved categories
+            solvedCategories.push({ name: category.name, words: solvedWordTexts, difficulty: category.difficulty });
+            renderSolvedCategories();
+
+            // Remove solved words from allWords so they are not re-rendered
+            allWords = allWords.filter(wordObj => !solvedWordTexts.includes(wordObj.text));
+
+            // Clear selected words for next guess
+            selectedWords = [];
+            updateSubmitButtonState();
+
+            // Re-render the remaining words to fill the grid
+            renderWordGrid();
+
+            checkWinCondition();
+        }
+
+        function renderSolvedCategories() {
+            solvedCategoriesContainer.innerHTML = ''; // Clear existing
+            solvedCategories.forEach(cat => {
+                const solvedGroup = document.createElement('div');
+                solvedGroup.classList.add('solved-category-group');
+                solvedGroup.innerHTML = `
+                    <div class="category-name">${cat.name}</div>
+                    <div class="category-words">${cat.words.join(', ')}</div>
+                `;
+                solvedCategoriesContainer.appendChild(solvedGroup);
+            });
+        }
+
+        function handleIncorrectGuess() {
+            incorrectGuesses++;
+            updateLivesDisplay();
+            showMessage(`Incorrect guess! ${maxIncorrectGuesses - incorrectGuesses} mistakes remaining.`, 'error');
+
+            // Shake selected cards
+            document.querySelectorAll('.word-card.selected').forEach(card => {
+                card.classList.add('incorrect');
+            });
+
+            // Deselect words and remove shake class after animation
+            setTimeout(() => {
+                document.querySelectorAll('.word-card.incorrect').forEach(card => {
+                    card.classList.remove('incorrect');
+                    card.classList.remove('selected'); // Also deselect them
+                });
+                selectedWords = [];
+                updateSubmitButtonState();
+                checkLoseCondition();
+            }, 700); // Match shake animation duration
+        }
+
+        function updateLivesDisplay() {
+            const lifeDots = livesContainer.querySelectorAll('.life-dot');
+            lifeDots.forEach((dot, index) => {
+                if (index < maxIncorrectGuesses - incorrectGuesses) {
+                    dot.classList.remove('lost');
+                } else {
+                    dot.classList.add('lost');
+                }
+            });
+        }
+
+        function checkWinCondition() {
+            if (solvedCategories.length === categories.length) {
+                disableButtons(); // Disable buttons immediately
+                setTimeout(() => {
+                    celebrationScreen.classList.add('show');
+                    celebrationAudio.play().catch(e => console.error("Celebration audio play failed:", e));
+                }, 3000); // 3-second delay
+            }
+        }
+
+        function checkLoseCondition() {
+            if (incorrectGuesses >= maxIncorrectGuesses) {
+                loseOverlay.classList.add('show');
+                disableButtons();
+            }
+        }
+
+        function disableButtons() {
+            shuffleButton.disabled = true;
+            deselectButton.disabled = true;
+            submitButton.disabled = true;
+        }
+
+        function enableButtons() {
+            shuffleButton.disabled = false;
+            deselectButton.disabled = false;
+            submitButton.disabled = false; // Will be re-evaluated by updateSubmitButtonState
+        }
+
+        function playBackgroundMusic() {
+            backgroundMusic.play().catch(error => {
+                console.log("Background music autoplay prevented:", error);
+            });
+        }
+
+        // Event Listeners
+        shuffleButton.addEventListener('click', () => {
+            shuffleAndRenderWords();
+            deselectAllWords(); // Deselect words on shuffle
+        });
+        deselectButton.addEventListener('click', deselectAllWords);
+        submitButton.addEventListener('click', submitGuess);
+        restartButton.addEventListener('click', initializeGame);
+
+        // Initial game setup
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+</body>
+</html>
