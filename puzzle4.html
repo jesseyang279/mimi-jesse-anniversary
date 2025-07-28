@@ -303,6 +303,8 @@
 </head>
 <body>
 
+    <!-- Audio tag for background music (added) -->
+    <audio id="backgroundMusic" src="placeholder_quiz_music.mp3" preload="auto" loop></audio>
 
     <div class="container">
         <h1>Puzzle 4: Boyfriend Quiz</h1>
@@ -500,7 +502,7 @@
         function showCongratulations() {
             console.log("Celebration screen should be visible now."); // Debug log
             // Pause background music if it's playing
-            if (!backgroundMusic.paused) {
+            if (backgroundMusic && !backgroundMusic.paused) { // Added check for backgroundMusic existence
                 backgroundMusic.pause();
                 backgroundMusic.currentTime = 0; // Rewind for next play
             }
