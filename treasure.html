@@ -1,1 +1,388 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-F-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treasure!</title>
+    <!-- Tailwind CSS for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* Black background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Hide overflow */
+            position: relative; /* For positioning spotlight and content */
+        }
+
+        /* Spotlight effect - now a clear light beam */
+        .spotlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Gradient for light intensity within the beam - MUCH BRIGHTER */
+            background: linear-gradient(to bottom, rgba(255, 255, 150, 0.8) 0%, rgba(255, 255, 150, 0.4) 40%, transparent 55%);
+            /* Defines a trapezoid (cone) shape for the beam, ending higher */
+            clip-path: polygon(
+                48% 0%,   /* Top-left point (narrow) */
+                52% 0%,   /* Top-right point (narrow) */
+                58% 55%, /* Bottom-right point (wider, adjusted height) */
+                42% 55%  /* Bottom-left point (wider, adjusted height) */
+            );
+            pointer-events: none; /* Allows clicks to pass through to elements below */
+            z-index: 1; /* Above background, below treasure chest */
+            animation: beam-flicker 3s infinite alternate; /* Subtle flicker/movement */
+            opacity: 0; /* Start invisible */
+            transition: opacity 3s ease-in-out; /* Spotlight fades in over 3 seconds */
+            display: none; /* Initially hidden */
+        }
+
+        @keyframes beam-flicker {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.95;
+                transform: scale(1.005);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .treasure-chest {
+            width: 300px; /* Adjust size as needed */
+            height: auto;
+            object-fit: contain;
+            z-index: 2; /* On top of the spotlight */
+            box-shadow: 0 0 50px rgba(255, 255, 150, 0.5); /* Glow effect from spotlight */
+            border-radius: 10px; /* Slightly rounded corners for the glow effect */
+            opacity: 0; /* Start invisible */
+            transition: opacity 5s ease-in-out; /* Treasure chest fades in over 5 seconds */
+            display: none; /* Initially hidden */
+        }
+
+        /* Base styling for message popup boxes */
+        .message-popup-box {
+            background-color: #ffffff;
+            padding: 1.5rem 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 90%;
+            width: 500px; /* Adjust width as needed */
+            border: 3px solid #d8c8f0; /* Paler lilac border */
+            z-index: 3;
+            display: block; /* Always display block, control visibility with opacity and position */
+        }
+
+        .message-popup-box p {
+            color: #6a0dad; /* Darker purple text */
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Specific styles for the first message box's initial state and fly-out */
+        #firstMessageBox {
+            position: absolute; /* Keep absolute positioning for the first box */
+            bottom: 50px; /* Final vertical position on screen */
+            left: 50%;
+            transform: translateX(-50%); /* Centering transform */
+            opacity: 1; /* Start visible */
+        }
+
+        #firstMessageBox.fly-out-left {
+            animation: flyOutLeft 1s ease-in-out forwards;
+        }
+
+        @keyframes flyOutLeft {
+            0% {
+                left: 50%;
+                opacity: 1;
+                transform: translateX(-50%);
+            }
+            100% {
+                left: -50%; /* Move far left off screen */
+                opacity: 0;
+                transform: translateX(-50%); /* Keep centering transform */
+            }
+        }
+
+        /* Wrapper for the second message box (now just the box, not also the button) */
+        #secondMessageBoxWrapper {
+            position: absolute;
+            bottom: 50px; /* Final vertical position */
+            left: 150%; /* Start off-screen to the right */
+            transform: translateX(-50%); /* Centering for the wrapper */
+            z-index: 3;
+            opacity: 0; /* Will be controlled by fly-in-right animation */
+            pointer-events: none; /* Initially non-interactive */
+        }
+
+        #secondMessageBoxWrapper.fly-in-right {
+            animation: flyInRight 1s ease-out forwards;
+            pointer-events: all; /* Make interactive when animation starts */
+        }
+
+        @keyframes flyInRight {
+            0% {
+                left: 150%; /* Start far right */
+                opacity: 0;
+                transform: translateX(-50%); /* Keep centering transform */
+            }
+            100% {
+                left: 50%; /* End centered */
+                opacity: 1;
+                transform: translateX(-50%); /* Keep centering transform */
+            }
+        }
+
+        /* Styling for the next button (now separate) */
+        .next-button {
+            position: absolute; /* Absolute positioning */
+            bottom: 50px; /* Align with text boxes vertically */
+            right: 50px; /* Far right */
+            background-color: #a878ed; /* Matching purple */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.125rem;
+            transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.5s ease; /* Add opacity transition */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: inline-block;
+            cursor: pointer;
+            opacity: 0; /* Start invisible */
+            z-index: 4; /* Ensure it's above text boxes */
+        }
+
+        .next-button.show-button {
+            opacity: 1;
+        }
+
+        .next-button:hover {
+            background-color: #8a2be2;
+            transform: translateY(-2px);
+        }
+
+        /* Styling for the flying toyyoda images */
+        .flying-toyyoda {
+            position: absolute;
+            width: 140px; /* Doubled size */
+            height: auto;
+            object-fit: contain;
+            z-index: 2.5; /* Above treasure chest, below message box */
+            opacity: 0; /* Start invisible, will fade in with movement */
+            animation: flyAround var(--duration) linear infinite; /* Continuous random movement */
+        }
+
+        /* Keyframes for continuous random flying */
+        @keyframes flyAround {
+            0% {
+                opacity: 0; /* Start invisible */
+                transform: translate(0, 0) rotate(0deg) scale(0.5);
+            }
+            10% {
+                opacity: 1; /* Fade in */
+            }
+            25% {
+                transform: translate(var(--x1), var(--y1)) rotate(var(--r1)) scale(var(--s1));
+            }
+            50% {
+                transform: translate(var(--x2), var(--y2)) rotate(var(--r2)) scale(var(--s2));
+            }
+            75% {
+                transform: translate(var(--x3), var(--y3)) rotate(var(--r3)) scale(var(--s3));
+            }
+            100% {
+                opacity: 0; /* Fade out as it goes off screen or resets */
+                transform: translate(var(--x4), var(--y4)) rotate(var(--r4)) scale(var(--s4));
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .treasure-chest {
+                width: 250px;
+            }
+            .spotlight {
+                /* Adjust clip-path for smaller screens if necessary to keep beam centered */
+                clip-path: polygon(
+                    45% 0%,
+                    55% 0%,
+                    65% 55%, /* Adjusted for smaller screens */
+                    35% 55%  /* Adjusted for smaller screens */
+                );
+            }
+            .message-popup-box {
+                padding: 1rem 2rem;
+                width: 90%;
+            }
+            .message-popup-box p {
+                font-size: 1.1rem;
+            }
+            .flying-toyyoda {
+                width: 110px; /* Doubled size for smaller screens */
+            }
+            .next-button {
+                font-size: 1rem;
+                padding: 0.6rem 1.2rem;
+                right: 20px; /* Adjust right position for smaller screens */
+                bottom: 20px; /* Adjust bottom position for smaller screens */
+            }
+        }
+        @media (max-width: 480px) {
+            .treasure-chest {
+                width: 200px;
+            }
+            .spotlight {
+                /* Adjust clip-path for very small screens */
+                clip-path: polygon(
+                    40% 0%,
+                    60% 0%,
+                    70% 55%, /* Adjusted for very small screens */
+                    30% 55%  /* Adjusted for very small screens */
+                );
+            }
+            .message-popup-box {
+                padding: 0.8rem 1.5rem;
+            }
+            .message-popup-box p {
+                font-size: 1rem;
+            }
+            .flying-toyyoda {
+                width: 80px; /* Doubled size for very small screens */
+            }
+            .next-button {
+                font-size: 0.9rem;
+                padding: 0.5rem 1rem;
+                right: 10px; /* Further adjust right position for very small screens */
+                bottom: 10px; /* Further adjust bottom position for very small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="spotlight" id="spotlight"></div>
+    <img src="gif_treasure.gif" alt="Treasure Chest" class="treasure-chest" id="treasureChest" onerror="this.onerror=null;this.src='https://placehold.co/300x300/000000/FFFFFF?text=Treasure+Chest'">
+
+    <!-- First message popup box -->
+    <div class="message-popup-box" id="firstMessageBox">
+        <p>...Hey Milk! I think there's something inside!</p>
+    </div>
+
+    <!-- Wrapper for the second message box -->
+    <div id="secondMessageBoxWrapper">
+        <div class="message-popup-box" id="secondMessageBox">
+            <p>OMG...it's...504 TOY YODAS!!!</p>
+        </div>
+    </div>
+
+    <!-- Next Button (now separate) -->
+    <a href="video.html" id="nextButton" class="next-button">Next</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const treasureChest = document.getElementById('treasureChest');
+            const spotlight = document.getElementById('spotlight');
+            const firstMessageBox = document.getElementById('firstMessageBox');
+            const secondMessageBoxWrapper = document.getElementById('secondMessageBoxWrapper'); // Renamed
+            const nextButton = document.getElementById('nextButton');
+
+            // Function to spawn and animate toyyoda images
+            function spawnToyyodas() {
+                // Get treasure chest dimensions for initial spawn point
+                const treasureRect = treasureChest.getBoundingClientRect();
+                const centerX = treasureRect.left + treasureRect.width / 2;
+                const centerY = treasureRect.top + treasureRect.height / 2;
+
+                for (let i = 0; i < 504; i++) {
+                    const toyyoda = document.createElement('img');
+                    toyyoda.src = 'toyyoda.png';
+                    toyyoda.alt = 'Toyyoda';
+                    toyyoda.classList.add('flying-toyyoda');
+                    document.body.appendChild(toyyoda);
+
+                    // Set initial position to the center of the treasure chest
+                    toyyoda.style.left = `${centerX}px`;
+                    toyyoda.style.top = `${centerY}px`;
+
+                    // Set random CSS variables for the animation
+                    const duration = Math.random() * 10 + 10; // 10-20 seconds for full cycle
+                    toyyoda.style.setProperty('--duration', `${duration}s`);
+
+                    // Generate random target coordinates for keyframes (relative to initial position)
+                    // Ensure they fly off-screen and then back in
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+
+                    const randomX = () => (Math.random() - 0.5) * viewportWidth * 2; // -viewportWidth to +viewportWidth
+                    const randomY = () => (Math.random() - 0.5) * viewportHeight * 2; // -viewportHeight to +viewportHeight
+                    const randomRotation = () => `${Math.random() * 1080 - 540}deg`; // -540 to +540 degrees
+                    const randomScale = () => Math.random() * 0.7 + 0.3; // 0.3 to 1.0
+
+                    toyyoda.style.setProperty('--x1', `${randomX()}px`);
+                    toyyoda.style.setProperty('--y1', `${randomY()}px`);
+                    toyyoda.style.setProperty('--r1', randomRotation());
+                    toyyoda.style.setProperty('--s1', randomScale());
+
+                    toyyoda.style.setProperty('--x2', `${randomX()}px`);
+                    toyyoda.style.setProperty('--y2', `${randomY()}px`);
+                    toyyoda.style.setProperty('--r2', randomRotation());
+                    toyyoda.style.setProperty('--s2', randomScale());
+
+                    toyyoda.style.setProperty('--x3', `${randomX()}px`);
+                    toyyoda.style.setProperty('--y3', `${randomY()}px`);
+                    toyyoda.style.setProperty('--r3', randomRotation());
+                    toyyoda.style.setProperty('--s3', randomScale());
+
+                    toyyoda.style.setProperty('--x4', `${randomX()}px`);
+                    toyyoda.style.setProperty('--y4', `${randomY()}px`);
+                    toyyoda.style.setProperty('--r4', randomRotation());
+                    toyyoda.style.setProperty('--s4', randomScale());
+                }
+            }
+
+
+            // Fade in treasure chest first over 5 seconds
+            setTimeout(() => {
+                treasureChest.style.display = 'block'; // Make it visible before fading
+                treasureChest.style.opacity = 1;
+            }, 100); // Small initial delay to ensure transition applies
+
+            // Then, fade in spotlight and spawn toyyodas after 5 seconds
+            setTimeout(() => {
+                spotlight.style.display = 'block'; // Make spotlight visible before fading
+                spotlight.style.opacity = 1;
+
+                spawnToyyodas(); // Call the new function here
+            }, 5000); // Start spotlight and toyyoda spawn after 5 seconds
+
+            // After the first message box has been visible for 2 seconds (from 0s), animate its exit and the new one's entry
+            setTimeout(() => {
+                firstMessageBox.classList.add('fly-out-left'); // Start flying out
+                
+                // Start the second message box wrapper animation
+                secondMessageBoxWrapper.classList.add('fly-in-right');
+            }, 7000); // 7000ms from page load (5s for chest/spotlight/toyyodas + 2s for first message display)
+
+            // Show the "Next" button after the second message box has fully appeared + 3 seconds
+            setTimeout(() => {
+                nextButton.classList.add('show-button');
+            }, 7000 + 1000 + 3000); // 7000ms (container starts) + 1000ms (container animation duration) + 3000ms (button delay) = 11000ms
+        });
+    </script>
+</body>
+</html>
