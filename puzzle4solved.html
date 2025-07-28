@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle 4 Solved! - Treasure Unlocked!</title>
+    <!-- Tailwind CSS for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff; /* White background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow: hidden; /* Hide overflow for animations */
+            position: relative; /* For absolute positioning of canvas and image containers */
+        }
+
+        /* Canvas for sparkles and fireworks */
+        #animationCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0; /* Behind content, above image row */
+        }
+
+        .image-row-container {
+            display: flex;
+            align-items: center; /* Vertically align items in the flex container */
+            justify-content: center; /* Horizontally center items */
+            position: absolute;
+            top: 40%; /* Adjust this to move the whole row up/down */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the container itself */
+            z-index: -2; /* Place behind canvas (z-index: 0) and message box (z-index: 1) */
+            gap: 2rem; /* Space between the images */
+        }
+
+        .spinning-heart {
+            width: 400px; /* Size of the heart image (2x from 200px) */
+            height: 400px; /* Size of the heart image (2x from 200px) */
+            animation: spin 2s linear infinite; /* Spinning animation - FASTER */
+            border-radius: 50%; /* Make it circular for better spinning effect */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Prevent heart from shrinking */
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); } /* Only rotation now, no translation */
+            to { transform: rotate(360deg); }
+        }
+
+        .side-gif {
+            width: 200px; /* Size for side GIFs */
+            height: 200px;
+            object-fit: cover;
+            border-radius: 1rem;
+            box-shadow: 0 5px 10px -2px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Prevent GIFs from shrinking */
+        }
+
+        .bottom-message-box {
+            position: absolute; /* Position at the bottom */
+            bottom: 2rem; /* Distance from the bottom edge */
+            left: 50%;
+            transform: translateX(-50%); /* Center horizontally */
+            background-color: #ffffff;
+            padding: 1.5rem 2.5rem; /* Adjusted padding */
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 90%;
+            width: 600px; /* Max width for the text box */
+            border: 3px solid #d8c8f0; /* Paler lilac border */
+            z-index: 1; /* Ensure it's above canvas and images */
+        }
+
+        .bottom-message-box p {
+            color: #6a0dad;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin: 0; /* Remove default paragraph margins */
+        }
+
+        /* New button styling */
+        #open-treasure-button {
+            position: absolute;
+            top: 40%; /* Align with the top of the image-row-container */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center over the heart */
+            background-color: #a878ed; /* Matching purple */
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 9999px; /* Fully rounded */
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.5rem;
+            transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.5s ease;
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.15), 0 3px 6px -1px rgba(0, 0, 0, 0.08);
+            display: inline-block;
+            cursor: pointer;
+            opacity: 0; /* Start invisible */
+            z-index: 2; /* Ensure it's above the image row and canvas */
+        }
+
+        #open-treasure-button.show {
+            opacity: 1;
+        }
+
+        #open-treasure-button:hover {
+            background-color: #8a2be2; /* Slightly darker on hover */
+            transform: translate(-50%, -50%) translateY(-3px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 5px 8px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .image-row-container {
+                flex-direction: column; /* Stack images vertically on smaller screens */
+                gap: 1rem;
+                top: 45%; /* Adjust top for stacked layout */
+            }
+            .spinning-heart {
+                width: 300px; /* Adjusted for smaller screens */
+                height: 300px; /* Adjusted for smaller screens */
+            }
+            .side-gif {
+                width: 150px; /* Adjusted for smaller screens */
+                height: 150px;
+            }
+            .bottom-message-box {
+                padding: 1rem 2rem;
+                width: 90%;
+                bottom: 1.5rem;
+            }
+            .bottom-message-box p {
+                font-size: 1.1rem;
+            }
+            #open-treasure-button {
+                font-size: 1.2rem;
+                padding: 0.8rem 1.5rem;
+                top: 45%; /* Adjust for stacked layout */
+            }
+        }
+        @media (max-width: 480px) {
+            .image-row-container {
+                top: 50%; /* Center on very small screens to avoid being too high */
+            }
+            .spinning-heart {
+                width: 200px; /* Adjusted for very small screens */
+                height: 200px; /* Adjusted for very small screens */
+            }
+            .side-gif {
+                width: 100px; /* Adjusted for very small screens */
+                height: 100px;
+            }
+            .bottom-message-box {
+                padding: 0.8rem 1.5rem;
+                bottom: 1rem;
+            }
+            .bottom-message-box p {
+                font-size: 1rem;
+            }
+            #open-treasure-button {
+                font-size: 1rem;
+                padding: 0.7rem 1.2rem;
+                top: 50%; /* Adjust for very small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio tag for background music -->
+    <audio id="backgroundMusic" loop autoplay>
+        <source src="mp3_emart.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Container for the image row -->
+    <div class="image-row-container">
+        <img src="gif_mocha_dance.gif" alt="Mocha Dancing GIF" class="side-gif" onerror="this.onerror=null;this.src='https://placehold.co/200x200/d8c8f0/8a2be2?text=Mocha+GIF'">
+        <img src="img_heart5.jpg" alt="Spinning Heart" class="spinning-heart" onerror="this.onerror=null;this.src='https://placehold.co/400x400/d8c8f0/8a2be2?text=Heart+5'">
+        <img src="gif_milk.gif" alt="Milk Bear GIF" class="side-gif" onerror="this.onerror=null;this.src='https://placehold.co/200x200/d8c8f0/8a2be2?text=Milk+GIF'">
+    </div>
+
+    <!-- New text box at the bottom -->
+    <div class="bottom-message-box">
+        <p>Wow, Mocha! Look at that, we completed the treasure! Let's open it to see what's inside!!!</p>
+    </div>
+
+    <!-- Open Treasure Button -->
+    <a href="treasure.html" id="open-treasure-button">Open Treasure</a>
+
+    <script>
+        const canvas = document.getElementById('animationCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let fireworks = [];
+        const maxParticles = 3000; // Increased limit for more particles
+
+        // Particle class for sparkles and firework trails
+        class Particle {
+            constructor(x, y, color, size, vx = 0, vy = 0, gravity = 0.05, friction = 0.99, alphaDecay = 0.01) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx + (Math.random() - 0.5) * 4; // Increased randomness for spread
+                this.vy = vy + (Math.random() - 0.5) * 4; // Increased randomness for spread
+                this.color = color;
+                this.size = size;
+                this.alpha = 1;
+                this.gravity = gravity;
+                this.friction = friction;
+                this.alphaDecay = alphaDecay;
+            }
+
+            update() {
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.alphaDecay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Firework class
+        class Firework {
+            constructor(startX, startY, targetX, targetY) {
+                this.x = startX;
+                this.y = startY;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.distanceToTarget = Math.sqrt(Math.pow(targetX - startX, 2) + Math.pow(targetY - startY, 2));
+                this.angle = Math.atan2(targetY - startY, targetX - startX);
+                this.speed = 7; // Increased speed
+                this.vx = Math.cos(this.angle) * this.speed;
+                this.vy = Math.sin(this.angle) * this.speed;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                this.exploded = false;
+                this.particles = [];
+                this.trail = []; // For the firework's ascent trail
+                this.trailLength = 15; // Longer trail
+            }
+
+            update() {
+                if (!this.exploded) {
+                    // Update trail
+                    this.trail.push(new Particle(this.x, this.y, 'rgba(255,255,255,0.5)', 1, 0, 0, 0.01, 0.95, 0.05));
+                    if (this.trail.length > this.trailLength) {
+                        this.trail.shift();
+                    }
+                    this.trail.forEach(p => p.update());
+
+                    const prevDistance = this.distanceToTarget;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.distanceToTarget = Math.sqrt(Math.pow(this.targetX - this.x, 2) + Math.pow(this.targetY - this.y, 2));
+
+                    // If target is reached or passed
+                    if (this.distanceToTarget < this.speed || this.distanceToTarget > prevDistance) {
+                        this.exploded = true;
+                        this.explode();
+                    }
+                } else {
+                    this.particles.forEach((p, index) => {
+                        p.update();
+                        if (p.alpha <= 0.05) {
+                            this.particles.splice(index, 1);
+                        }
+                    });
+                }
+            }
+
+            draw() {
+                if (!this.exploded) {
+                    // Draw trail
+                    this.trail.forEach(p => p.draw());
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                    ctx.restore();
+                } else {
+                    this.particles.forEach(p => p.draw());
+                }
+            }
+
+            explode() {
+                const numParticles = 100 + Math.random() * 100; // More explosion particles
+                for (let i = 0; i < numParticles; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 7 + 2; // Increased explosion speed
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed;
+                    this.particles.push(new Particle(this.x, this.y, this.color, Math.random() * 4 + 1, vx, vy, 0.05, 0.95, 0.015)); // Larger particles, faster decay
+                }
+            }
+        }
+
+        // Resize canvas to fill window
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        // Initial setup
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+
+            // Update and draw sparkles
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                if (p.alpha <= 0.05) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            // Update and draw fireworks
+            fireworks.forEach((f, index) => {
+                f.update();
+                f.draw();
+                if (f.exploded && f.particles.length === 0) {
+                    fireworks.splice(index, 1);
+                }
+            });
+
+            // Limit total particles to prevent performance issues
+            while (particles.length + fireworks.reduce((sum, f) => sum + f.particles.length, 0) > maxParticles) {
+                if (particles.length > 0) particles.shift();
+                else if (fireworks.length > 0 && fireworks[0].particles.length > 0) fireworks[0].particles.shift();
+                else if (fireworks.length > 0) fireworks.shift(); // Remove empty fireworks
+                else break;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Function to create a sparkle burst from the center
+        function createCenterSparkleBurst() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const numSparkles = 150; // More sparkles per burst
+            for (let i = 0; i < numSparkles; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 8 + 2; // Increased speed for sparkles
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+                // Darker gold color: rgba(218, 165, 32, 0.9)
+                particles.push(new Particle(centerX, centerY, 'rgba(218, 165, 32, 0.9)', Math.random() * 3 + 1, vx, vy, 0.01, 0.97, 0.01)); // Larger, faster sparkles
+            }
+        }
+
+        // Function to create a new firework
+        function createFirework() {
+            const startX = Math.random() * canvas.width;
+            const startY = canvas.height; // Start from bottom
+            const targetX = Math.random() * canvas.width;
+            const targetY = Math.random() * (canvas.height / 2); // Explode in top half
+            fireworks.push(new Firework(startX, startY, targetX, targetY));
+        }
+
+        // Start animations
+        animate();
+
+        // Get the Open Treasure button
+        const openTreasureButton = document.getElementById('open-treasure-button');
+
+        // Create initial sparkle burst and set intervals
+        setTimeout(() => {
+            createCenterSparkleBurst();
+            setInterval(createCenterSparkleBurst, 500); // Every 0.5 seconds (more frequent)
+            setInterval(createFirework, 500); // Every 0.5 seconds (more frequent)
+        }, 500); // Initial burst after 0.5 second
+
+        // Show the Open Treasure button after 4 seconds
+        setTimeout(() => {
+            openTreasureButton.classList.add('show');
+        }, 4000); // 4 seconds delay
+
+        // Get the audio element
+        const backgroundMusic = document.getElementById('backgroundMusic');
+
+        // Attempt to play music automatically on page load.
+        backgroundMusic.play().catch(error => {
+            console.log("Background music autoplay prevented:", error);
+            // Optionally, you could add a visible message to the user here
+            // instructing them to interact with the page to enable audio.
+        });
+    </script>
+</body>
+</html>
