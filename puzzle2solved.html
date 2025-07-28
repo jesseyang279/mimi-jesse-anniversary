@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle 2 Solved!</title>
+    <!-- Tailwind CSS for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000; /* Start with a black background */
+            display: flex;
+            flex-direction: column; /* Arrange items vertically */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Hide any potential scrollbars */
+            transition: background-color 4s ease-in-out; /* Smooth transition for background color */
+            position: relative; /* Needed for absolute positioning of text box */
+        }
+        /* This class will be added by JavaScript to trigger the fade */
+        body.fade-in-bg {
+            background-color: #ffffff; /* Changed to white background */
+        }
+
+        .animated-element {
+            /* Common styles for elements that will animate */
+            position: absolute; /* Position relative to body */
+            z-index: 1; /* Default z-index */
+        }
+
+        .heart-image {
+            width: 100%;
+            max-width: 400px; /* Max width for the heart image */
+            height: auto;
+            opacity: 0; /* Start the image as invisible */
+            top: 50%; /* Center vertically */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%); /* Adjust for true centering */
+            transition: opacity 3s ease-in-out 1s; /* Smooth transition for image opacity, with a delay */
+        }
+        /* When 'fade-in-bg' is active, the heart image will fade in */
+        body.fade-in-bg .heart-image {
+            opacity: 1;
+        }
+
+        .text-box {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            max-width: 90%;
+            width: 600px; /* Consistent width with previous text boxes */
+            border: 3px solid #d8c8f0; /* Paler lilac border */
+            bottom: -300px; /* Start off-screen at the bottom */
+            opacity: 0; /* Start invisible */
+            transition: bottom 1.5s ease-out, opacity 1.5s ease-out; /* Smooth slide up and fade in */
+            z-index: 2; /* Ensure text box is above heart if they overlap during animation */
+        }
+
+        /* Class to trigger the text box animation */
+        .text-box.slide-up {
+            bottom: 50px; /* End position, adjust as needed relative to the bottom */
+            opacity: 1;
+        }
+
+        .text-box p {
+            color: #a878ed; /* Paler blue-violet for paragraph */
+            font-size: 1.125rem; /* Standard paragraph size */
+            line-height: 1.6;
+        }
+
+        /* Animation for elements flying off to the left */
+        @keyframes flyOffLeft {
+            to {
+                transform: translateX(-150vw) translateY(-50%) scale(0.5); /* Move far left, shrink */
+                opacity: 0;
+            }
+        }
+
+        .heart-image.fly-off {
+            animation: flyOffLeft 1.5s ease-in-out forwards;
+        }
+        .text-box.fly-off {
+            animation: flyOffLeft 1.5s ease-in-out forwards;
+            transform: translateX(-150vw); /* Just move horizontally */
+            opacity: 0;
+        }
+
+
+        /* Puzzle Buttons Container */
+        .puzzle-buttons-container {
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap to next line */
+            justify-content: center; /* Center items horizontally */
+            align-items: center; /* Center items vertically */
+            gap: 1.5rem; /* Space between buttons for 2x2 layout */
+            opacity: 0; /* Start invisible */
+            transition: opacity 1s ease-in-out; /* Fade in transition */
+            z-index: 3; /* Ensure buttons are on top */
+            position: absolute; /* Position in the center */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            width: 800px; /* Max width for button layout */
+        }
+
+        .puzzle-buttons-container.show {
+            opacity: 1;
+        }
+
+        /* Original Rectangular Puzzle Button Styles */
+        .puzzle-button {
+            background-color: #a878ed; /* Matching purple */
+            color: white;
+            padding: 1.5rem 2.5rem; /* Larger padding for buttons */
+            border-radius: 1rem; /* Rounded corners */
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.25rem; /* Larger font size */
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.15), 0 3px 6px -1px rgba(0, 0, 0, 0.08); /* More prominent shadow */
+            flex: 1 1 calc(50% - 1.5rem); /* Two buttons per row on larger screens, accounting for gap */
+            min-width: 200px; /* Minimum width for buttons */
+            text-align: center;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .puzzle-button:hover {
+            background-color: #8a2be2; /* Slightly darker on hover */
+            transform: translateY(-3px); /* Lift */
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 5px 8px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Button Styles (copied from puzzlehome.html for consistency) */
+        .puzzle-button.disabled {
+            background-color: #e0e0e0; /* Lighter gray background */
+            color: #a0a0a0; /* Lighter gray text */
+            cursor: not-allowed; /* Indicate it's not clickable */
+            box-shadow: none; /* No shadow for disabled state */
+            transform: none; /* No transform on hover */
+            pointer-events: none; /* Crucial: prevents click events */
+            opacity: 0.7; /* Slightly transparent */
+        }
+        .puzzle-button.disabled:hover {
+            background-color: #e0e0e0; /* No change on hover */
+            transform: none; /* No lift on hover */
+            box-shadow: none; /* No shadow on hover */
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .heart-image {
+                max-width: 300px;
+            }
+            .text-box {
+                width: 500px;
+                padding: 2rem;
+            }
+            .text-box.slide-up {
+                bottom: 50px;
+            }
+            .puzzle-button {
+                flex: 1 1 calc(50% - 1.5rem); /* Maintain 2x2 */
+                font-size: 1.25rem;
+                padding: 1.5rem 2.5rem;
+            }
+            .puzzle-buttons-container {
+                max-width: 500px; /* Adjusted to better fit two rectangular buttons with gap */
+                width: auto;
+            }
+        }
+        @media (max-width: 767px) {
+            .heart-image {
+                max-width: 250px;
+            }
+            .text-box {
+                width: 90%;
+                padding: 1.5rem;
+            }
+            .text-box.slide-up {
+                bottom: 30px;
+            }
+            .puzzle-button {
+                flex: 1 1 100%; /* One button per row on smaller screens */
+                font-size: 1.1rem;
+                padding: 1rem 2rem;
+            }
+            .puzzle-buttons-container {
+                gap: 1rem; /* Adjust gap for smaller screens */
+                max-width: 300px; /* Ensure buttons stack or fit well */
+            }
+        }
+        @media (max-width: 480px) {
+            .heart-image {
+                max-width: 150px;
+            }
+            .text-box {
+                padding: 1rem;
+                font-size: 0.9rem;
+            }
+            .text-box.slide-up {
+                bottom: 20px;
+            }
+            .puzzle-button {
+                font-size: 1rem;
+                padding: 0.8rem 1.5rem;
+            }
+            .puzzle-buttons-container {
+                max-width: 250px; /* Ensure buttons stack or fit well */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio tag for background music -->
+    <audio id="backgroundMusic" loop>
+        <source src="mp3_blacktears.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- The heart image will appear in the center -->
+    <img src="img_heart014.jpg" alt="Heart Image" class="heart-image animated-element" onerror="this.onerror=null;this.src='https://placehold.co/400x400/ffffff/8a2be2?text=Heart+14+Fallback'">
+
+    <div class="text-box animated-element">
+        <p>Nice, that's two down! We're halfway there!</p>
+    </div>
+
+    <div class="puzzle-buttons-container" id="puzzleButtonsContainer">
+        <a href="puzzle1.html" class="puzzle-button">Puzzle 1</a>
+        <a href="puzzle2.html" class="puzzle-button">Puzzle 2</a>
+        <a href="puzzle3.html" class="puzzle-button">Puzzle 3</a>
+        <a class="puzzle-button disabled">Puzzle 4</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const heartImage = document.querySelector('.heart-image');
+            const textBox = document.querySelector('.text-box');
+            const puzzleButtonsContainer = document.getElementById('puzzleButtonsContainer');
+            const backgroundMusic = document.getElementById('backgroundMusic');
+
+            // Timing variables (in milliseconds)
+            const initialDelay = 100; // Delay before background fade starts
+            const bgFadeDuration = 4000; // Background fade duration
+            const heartFadeInDuration = 3000; // Heart fade-in duration
+            const heartFadeInDelay = 1000; // Heart fade-in delay (relative to bg fade start)
+
+            const textBoxSlideUpDelay = 3500; // Text box slide-up delay (relative to bg fade start)
+            const textBoxSlideUpDuration = 1500; // Text box slide-up duration
+
+            const flyOffStartDelay = 5000; // Delay after text box finishes sliding up before flying off
+            const flyOffDuration = 1500; // Duration for flying off animation
+
+            const buttonsAppearDelay = 500; // Delay after fly-off finishes before buttons appear
+            const buttonsAppearDuration = 1000; // Duration for buttons fade in
+
+            // Step 1: Background fade and Heart fade-in
+            setTimeout(() => {
+                body.classList.add('fade-in-bg');
+            }, initialDelay);
+
+            // Step 2: Text box slides up
+            setTimeout(() => {
+                textBox.classList.add('slide-up');
+            }, initialDelay + textBoxSlideUpDelay);
+
+            // Step 3: Heart and Text box fly off
+            // This timeout starts after the text box finishes its slide-up animation
+            setTimeout(() => {
+                heartImage.classList.add('fly-off');
+                textBox.classList.add('fly-off');
+            }, initialDelay + textBoxSlideUpDelay + textBoxSlideUpDuration + flyOffStartDelay);
+
+            // Step 4: Puzzle buttons appear
+            // This timeout starts after the fly-off animation finishes
+            setTimeout(() => {
+                puzzleButtonsContainer.classList.add('show');
+            }, initialDelay + textBoxSlideUpDelay + textBoxSlideUpDuration + flyOffStartDelay + flyOffDuration + buttonsAppearDelay);
+
+            // Attempt to play music automatically on page load.
+            // Note: This might still be blocked by browser autoplay policies
+            // unless there has been prior user interaction on the domain.
+            backgroundMusic.play().catch(error => {
+                console.log("Background music autoplay prevented:", error);
+                // You might want to add a visible message here if music doesn't play automatically
+            });
+        });
+    </script>
+</body>
+</html>
