@@ -103,7 +103,7 @@
             flex-direction: column; /* Stack image and text vertically */
             align-items: center; /* Center image and text horizontally */
             justify-content: center;
-            min-height: 180px; /* Ensure consistent height for buttons with images */
+            min-height: 200px; /* Increased height for buttons with larger images */
         }
         .option-button:hover {
             background-color: #e8dcf5; /* Slightly darker on hover */
@@ -118,8 +118,8 @@
         }
 
         .option-image {
-            width: 100px; /* Fixed width for images */
-            height: 100px; /* Fixed height for images */
+            width: 120px; /* Increased width for images */
+            height: 120px; /* Increased height for images */
             object-fit: cover; /* Cover the area, cropping if necessary */
             border-radius: 0.5rem;
             margin-bottom: 0.75rem; /* Space between image and text */
@@ -246,11 +246,11 @@
                 flex: 1 1 auto; /* Adjust flex for stacked layout */
                 font-size: 1rem;
                 padding: 0.8rem 1.2rem;
-                min-height: 150px; /* Adjust height for stacked mobile view */
+                min-height: 180px; /* Adjusted height for stacked mobile view with larger images */
             }
             .option-image {
-                width: 80px;
-                height: 80px;
+                width: 100px; /* Adjusted for smaller screens */
+                height: 100px; /* Adjusted for smaller screens */
             }
             #celebration-screen h2 {
                 font-size: 3rem;
@@ -279,11 +279,11 @@
             .option-button {
                 font-size: 0.9rem;
                 padding: 0.7rem 1rem;
-                min-height: 120px;
+                min-height: 150px; /* Adjusted for very small screens */
             }
             .option-image {
-                width: 60px;
-                height: 60px;
+                width: 80px;
+                height: 80px;
             }
             #celebration-screen h2 {
                 font-size: 2.5rem;
